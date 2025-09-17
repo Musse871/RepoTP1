@@ -1,10 +1,14 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 let conceptos = [];
 let idCounter = 1;
 
+const PORT = 3000;
+
 const server = http.createServer((req, res) => {
-  // Permitir CORS para facilitar pruebas en frontend separado
+  // Permitir CORS para pruebas
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -15,7 +19,20 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'GET') {
-    if (req.url === '/conceptos') {
+    if (req.url === '/' || req.url === '/index.html') {
+      // Leer y devolver index.html
+      const filePath = path.join(__dirname, 'index.html');
+      fs.readFile(filePath, 'utf-8', (err, content) => {
+        if (err) {
+          res.writeHead(500);
+          res.end('Error al cargar la página');
+        } else {
+          res.setHeader('Content-Type', 'text/html');
+          res.writeHead(200);
+          res.end(content);
+        }
+      });
+    } else if (req.url === '/conceptos') {
       // GET todos los conceptos
       res.writeHead(200, {'Content-Type': 'application/json'});
       res.end(JSON.stringify(conceptos));
@@ -35,7 +52,7 @@ const server = http.createServer((req, res) => {
       res.end();
     }
   } else if (req.method === 'POST' && req.url === '/conceptos') {
-    // POST para agregar concepto (recibiendo JSON)
+    // POST agregar concepto
     let body = '';
     req.on('data', chunk => {
       body += chunk.toString();
@@ -80,7 +97,6 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const PORT = 3000;
 server.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}/`);
+  console.log(`Servidor escuchando en http://localhost:3000/`);
 });
