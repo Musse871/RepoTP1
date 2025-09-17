@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Conceptos Backend</title>
+  <style>
+    body {font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 10px;}
+    label {display: block; margin: 10px 0 5px;}
+    input, textarea {width: 100%; padding: 8px; box-sizing: border-box;}
+    button {margin: 10px 0; padding: 10px 20px; cursor: pointer;}
+    .concepto {
+      border: 1px solid #ccc; padding: 10px; margin-top: 10px; border-radius: 4px;
+    }
+    .concepto h3 {margin: 0;}
+  </style>
+</head>
+<body>
+  <h1>Conceptos de Backend</h1>
+  <form id="conceptoForm">
+    <label for="nombre">Nombre del concepto</label>
+    <input type="text" id="nombre" required />
+    <label for="descripcion">Descripción</label>
+    <textarea id="descripcion" required></textarea>
+    <button type="submit">Agregar Concepto</button>
+  </form>
+
+  <button id="borrarTodos">Borrar Todos los Conceptos</button>
+  <h2>Lista de Conceptos</h2>
+  <div id="listaConceptos"></div>
+
+  <script>
+    const apiUrl = 'http://localhost:3000/conceptos';
+    const form = document.getElementById('conceptoForm');
+    const listaDiv = document.getElementById('listaConceptos');
+    const borrarTodosBtn = document.getElementById('borrarTodos');
+
+    function fetchConceptos() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          listaDiv.innerHTML = '';
+          data.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'concepto';
+            div.innerHTML = `<h3>${c.nombre}</h3><p>${c.descripcion}</p>
+            <button onclick="borrarConcepto(${c.id})">Borrar</button>`;
+            listaDiv.appendChild(div);
+          });
+        });
+    }
+
+    form.onsubmit = e => {
+      e.preventDefault();
+      const nombre = document.getElementById('nombre').value.trim();
+      const descripcion = document.getElementById('descripcion').value.trim();
+      if (!nombre || !descripcion) return alert('Complete ambos campos');
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({nombre, descripcion})
+      })
+      .then(() => {
+        form.reset();
+        fetchConceptos();
+      });
+    };
+
+    borrarTodosBtn.onclick = () => {
+      if (confirm('¿Eliminar todos los conceptos?')) {
+        fetch(apiUrl, {method: 'DELETE'}).then(() => fetchConceptos());
+      }
+    };
+
+    function borrarConcepto(id) {
+      if (confirm('¿Eliminar este concepto?')) {
+        fetch(`${apiUrl}/${id}`, {method: 'DELETE'}).then(() => fetchConceptos());
+      }
+    }
+
+    // Inicializar lista al cargar
+    fetchConceptos();
+  </script>
+</body>
+</html>
